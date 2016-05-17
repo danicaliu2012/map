@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>map</title>
+</head>
+<body>
+	<fieldset>
+		<input id="start" readonly value="SanFrancisco">
+		<input id="end">
+		<input type="button" value="Go" onclick="calcRoute()">
+	</fieldset>
+	<input type="button" value="Drop Pin" onclick="dropPin()"> Drop a marker on to the map<br>
+	<div id="map"> 
+	</div>
+	<div id="directionsPanel">
+		
+	</div>
+
+	
+</body>
+<style>
+	#map {
+		height:400px;
+	}
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js">
+	
+</script>
+
+<script>
+// declaration
+	var map;
+	var directionsDisplay;
+	var directionsService = new google.maps.DirectionsService();
+	var marker;
+	var image='http://icons.iconarchive.com/icons/artdesigner/webtoys/64/Pin-icon.png';
+	var styles = [
+	  {
+	    stylers: [
+	      { hue: "#00ffe6" },
+	      { saturation: -20 }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "geometry",
+	    stylers: [
+	      { lightness: 100 },
+	      { visibility: "simplified" }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "labels",
+	    stylers: [
+	      { visibility: "off" }
+	    ]
+	  }
+	];
+
+	function initialize(){
+		// define
+		directionsDisplay = new google.maps.DirectionsRenderer();
+		var SanFrancisco = new google.maps.LatLng(37.786261,-122.399533);
+		var mapOption = {
+			zoom: 7,
+			center: SanFrancisco
+		}
+		map = new google.maps.Map(document.getElementById("map"),mapOption);
+		map.setOptions({styles: styles});
+		directionsDisplay.setMap(map);
+
+		directionsDisplay.setPanel(document.getElementById("directionsPanel"));
+		
+	}
+	function dropPin(){
+		if(marker){
+			marker.setMap(null);
+		}
+		marker = new google.maps.Marker({
+			position: map.getCenter(),
+			map: map,
+			icon:image,
+			draggable: true,
+    		animation: google.maps.Animation.DROP,		
+    	});
+    	copyMarkerPositionToInput();
+    	marker.addListener('click',toggleBounce);
+    	google.maps.event.addListener(marker,'dragend', function(){
+    		copyMarkerPositionToInput();
+    	});
+
+	}
+	function toggleBounce(){
+		if(marker.getAnimation()!== null){
+			marker.setAnimation(null);
+		}
+		else{
+			marker.setAnimation(google.maps.Animation.BOUNCE);
+		}
+	}
+	function copyMarkerPositionToInput(){
+		document.getElementById("end").value = marker.getPosition().lat()+"," +
+ marker.getPosition().lng();
+ 	}
+ 	function calcRoute(){
+ 		var start = document.getElementById("start").value;
+ 		var end = document.getElementById("end").value;
+ 		var request = {
+ 			origin: start,
+ 			destination: end,
+ 			travelMode: google.maps.TravelMode.DRIVING
+ 		};
+ 		directionsService.route(request, function(response,status){
+ 			if(status == google.maps.DirectionsStatus.OK){
+ 				directionsDisplay.setDirections(response);
+ 			}
+ 		});
+ 	}
+
+	google.maps.event.addDomListener(window,'load',initialize);
+</script>
+
+</html>
